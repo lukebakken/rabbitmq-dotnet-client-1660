@@ -1,7 +1,6 @@
 ﻿using Genie.IngressConsumer.Services;
 
-
-while(true)
+while (true)
 {
     Console.WriteLine(@"Enter (R)abbitMQ (multi-threaded) or (Ra)bbitMQ (single-threaded) ");
     var input = Console.ReadLine();

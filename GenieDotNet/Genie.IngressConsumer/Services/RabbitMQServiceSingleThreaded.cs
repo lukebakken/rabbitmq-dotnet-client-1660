@@ -1,24 +1,14 @@
-﻿using Chr.Avro.Confluent;
-using Chr.Avro.Serialization;
-using Confluent.SchemaRegistry;
-using Genie.Common;
-using Genie.Common.Adapters;
+﻿using Genie.Common;
 using Genie.Common.Adapters.RabbitMQ;
-using Genie.Common.Performance;
 using Genie.Common.Types;
 using Genie.Common.Utils;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.ObjectPool;
 using Microsoft.IO;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Buffers;
 
-
-
 namespace Genie.IngressConsumer.Services;
-
 
 public class RabbitMQServiceSingleThreaded
 {
@@ -52,7 +42,6 @@ public class RabbitMQServiceSingleThreaded
         return (conn, ingressChannel, eventChannel);
     }
 
-
     public static async Task RabbitMq(GenieContext context)
     {
         try
@@ -63,35 +52,50 @@ public class RabbitMQServiceSingleThreaded
             using CancellationTokenSource cts = new();
             Console.WriteLine("Starting RabbitMQ Pump: " + cts.Token);
 
-            var channels = await Channels();
+            var (Connection, IngressChannel, EventChannel) = await Channels();
+            Connection.ConnectionBlocked += Connection_ConnectionBlocked;
+            Connection.CallbackException += Connection_CallbackException;
+            Connection.ConnectionRecoveryError += Connection_ConnectionRecoveryError;
+            Connection.ConnectionShutdown += Connection_ConnectionShutdown;
+            Connection.ConnectionUnblocked += Connection_ConnectionUnblocked;
+            Connection.RecoveringConsumer += Connection_RecoveringConsumer;
+            Connection.RecoverySucceeded += Connection_RecoverySucceeded;
 
-            var consumer = new AsyncEventingBasicConsumer(channels.IngressChannel);
+            IngressChannel.CallbackException += Channel_CallbackException;
+            IngressChannel.BasicReturn += Channel_BasicReturn;
+            IngressChannel.ChannelShutdown += Channel_ChannelShutdown;
+            IngressChannel.FlowControl += Channel_FlowControl;
+
+            EventChannel.CallbackException += Channel_CallbackException;
+            EventChannel.BasicReturn += Channel_BasicReturn;
+            EventChannel.ChannelShutdown += Channel_ChannelShutdown;
+            EventChannel.FlowControl += Channel_FlowControl;
+
+            var consumer = new AsyncEventingBasicConsumer(IngressChannel);
 
             var timerService = new CounterConsoleLogger();
 
-
-
-
-            
             bool useAvro = false;
             AutoResetEvent WaitHandle = new(false);
 
             BasicDeliverEventArgs? message = null;
-            consumer.Received += async (sender, ea) =>
+            consumer.Received += (sender, ea) =>
             {
                 message = ea;
                 WaitHandle.Set();
+                return Task.CompletedTask;
             };
 
             try
             {
-
-                string consumerTag = await channels.IngressChannel.BasicConsumeAsync(context.RabbitMQ.Queue, true, consumer);
+                string consumerTag = await IngressChannel.BasicConsumeAsync(context.RabbitMQ.Queue, true, consumer);
                 while (true)
                 {
                     var wait = WaitHandle.WaitOne(30000);
                     if (!wait)
+                    {
                         continue;
+                    }
 
                     timerService.Process();
                     Grpc.PartyBenchmarkRequest proto = Any.Parser.ParseFrom(message.Body.ToArray()).Unpack<Grpc.PartyBenchmarkRequest>();
@@ -106,11 +110,9 @@ public class RabbitMQServiceSingleThreaded
                             Status = EventTaskJobStatus.Completed
                         }, new Chr.Avro.Serialization.BinaryWriter(ms));
 
-                        await channels.EventChannel.BasicPublishAsync(message.BasicProperties.ReplyTo, context.RabbitMQ.RoutingKey, ms.GetReadOnlySequence().ToArray());
+                        await EventChannel.BasicPublishAsync(message.BasicProperties.ReplyTo, context.RabbitMQ.RoutingKey, ms.GetReadOnlySequence().ToArray());
                     }
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -127,15 +129,77 @@ public class RabbitMQServiceSingleThreaded
                         Status = EventTaskJobStatus.Errored
                     }, new Chr.Avro.Serialization.BinaryWriter(ms));
 
-                    await channels.EventChannel.BasicPublishAsync(message.BasicProperties.ReplyTo, context.RabbitMQ.RoutingKey, ms.GetReadOnlySequence().ToArray());
+                    await EventChannel.BasicPublishAsync(message.BasicProperties.ReplyTo, context.RabbitMQ.RoutingKey, ms.GetReadOnlySequence().ToArray());
                 }
             }
         }
-
-        catch(Exception ex)
+        catch (Exception ex)
         {
             await File.AppendAllTextAsync(@"c:\temp\rabbiterror.log", ex.ToString());
         }
+    }
 
+    private static void Channel_FlowControl(object? sender, FlowControlEventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] saw channel.flow, active: {1}", DateTime.Now, e.Active);
+    }
+
+    private static void Channel_ChannelShutdown(object? sender, ShutdownEventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] saw channel shutdown", DateTime.Now);
+        Console.WriteLine("cause: {0}", e.Cause);
+        Console.WriteLine("classId: {0}", e.ClassId);
+        Console.WriteLine("exception: {0}", e.Exception);
+    }
+
+    private static void Channel_BasicReturn(object? sender, BasicReturnEventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] saw basic.return, replyCode: {1}", DateTime.Now, e.ReplyCode);
+    }
+
+    private static void Channel_CallbackException(object? sender, CallbackExceptionEventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] saw channel callback exception", DateTime.Now);
+        Console.WriteLine("exception: {0}", e.Exception);
+    }
+
+    private static void Connection_RecoverySucceeded(object? sender, EventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] connection recovery succeeded", DateTime.Now);
+    }
+
+    private static void Connection_RecoveringConsumer(object? sender, RecoveringConsumerEventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] connection is recovering consumer, consumerTag: {1}", DateTime.Now, e.ConsumerTag);
+    }
+
+    private static void Connection_ConnectionUnblocked(object? sender, EventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] connection is unblocked", DateTime.Now);
+    }
+
+    private static void Connection_ConnectionBlocked(object? sender, ConnectionBlockedEventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] connection is blocked", DateTime.Now);
+    }
+
+    private static void Connection_ConnectionShutdown(object? sender, ShutdownEventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] saw connection shutdown", DateTime.Now);
+        Console.WriteLine("cause: {0}", e.Cause);
+        Console.WriteLine("classId: {0}", e.ClassId);
+        Console.WriteLine("exception: {0}", e.Exception);
+    }
+
+    private static void Connection_ConnectionRecoveryError(object? sender, ConnectionRecoveryErrorEventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] saw connection recovery error", DateTime.Now);
+        Console.WriteLine("exception: {0}", e.Exception);
+    }
+
+    private static void Connection_CallbackException(object? sender, CallbackExceptionEventArgs e)
+    {
+        Console.WriteLine("{0} [INFO] saw connection callback exception", DateTime.Now);
+        Console.WriteLine("exception: {0}", e.Exception);
     }
 }
