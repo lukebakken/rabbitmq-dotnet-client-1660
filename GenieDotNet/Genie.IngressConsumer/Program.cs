@@ -2,8 +2,9 @@
 
 while (true)
 {
-    Console.WriteLine(@"Enter (R)abbitMQ (multi-threaded) or (Ra)bbitMQ (single-threaded) ");
-    var input = Console.ReadLine();
+    // Console.WriteLine(@"Enter (R)abbitMQ (multi-threaded) or (Ra)bbitMQ (single-threaded) ");
+    // var input = Console.ReadLine();
+    string input = "ra";
 
     Task task = input?.ToLower() switch
     {
