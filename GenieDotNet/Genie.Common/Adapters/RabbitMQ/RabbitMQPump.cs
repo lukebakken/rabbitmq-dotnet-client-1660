@@ -1,6 +1,5 @@
-﻿using System.Threading.Tasks.Dataflow;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
+﻿using RabbitMQ.Client.Events;
+using System.Threading.Tasks.Dataflow;
 
 namespace Genie.Common.Adapters.RabbitMQ;
 
@@ -25,9 +24,7 @@ public sealed class RabbitMQPump<T>
     }
 
     private readonly TaskCompletionSource<bool> stop = new();
-    private readonly AutoResetEvent WaitHandle= new(false);
-
-
+    private readonly AutoResetEvent WaitHandle = new(false);
 
     /// <summary>
     /// <see cref="Task"/> which completes when this instance
@@ -91,6 +88,9 @@ public sealed class RabbitMQPump<T>
                 CancellationToken = ct
             };
 
+            // NOTE: you MUST copy the body, so a custom
+            // class rather than BasicDeliverEventArgs should
+            // be used
             BufferBlock<BasicDeliverEventArgs> buffer = new(bufferOptions);
 
             Task producer = Task.Run(async () =>
@@ -99,6 +99,9 @@ public sealed class RabbitMQPump<T>
                 {
                     MessageQueue.Received += async (sender, ea) =>
                     {
+                        // NOTE: you MUST copy the body because
+                        // it is no longer valid after the event handler
+                        // finishes
                         WaitHandle.Set();
                         await buffer.SendAsync(ea, ct).ConfigureAwait(false);
                     };

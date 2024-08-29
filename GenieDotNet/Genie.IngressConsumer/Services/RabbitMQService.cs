@@ -1,15 +1,8 @@
-﻿using Chr.Avro.Confluent;
-using Chr.Avro.Serialization;
-using Confluent.SchemaRegistry;
-using Genie.Common;
-using Genie.Common.Adapters;
+﻿using Genie.Common;
 using Genie.Common.Adapters.RabbitMQ;
-using Genie.Common.Performance;
 using Genie.Common.Types;
 using Genie.Common.Utils;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.ObjectPool;
 using Microsoft.IO;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -68,7 +61,6 @@ public class RabbitMQService
 
             var timerService = new CounterConsoleLogger();
 
-
             var pump = RabbitMQPump<byte[]>.Run(
                 consumer,
                 async message =>
@@ -93,7 +85,7 @@ public class RabbitMQService
                         }
 
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         timerService.ProcessError();
                         Console.ForegroundColor = ConsoleColor.Red;
@@ -120,7 +112,7 @@ public class RabbitMQService
             await pump.Completion;
         }
 
-        catch(Exception ex)
+        catch (Exception ex)
         {
             await File.AppendAllTextAsync(@"c:\temp\rabbiterror.log", ex.ToString());
         }
