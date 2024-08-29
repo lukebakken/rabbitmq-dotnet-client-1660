@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Genie.Web.Api", "Genie.Web.Api.csproj", "{DD95B1B9-92E7-4F44-AAD4-B836CD4EB46A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Genie.Common", "..\Genie.Common\Genie.Common.csproj", "{155F705B-979C-403E-9125-EC592505D7B1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedFiles", "SharedFiles", "{6BE6890F-D8A6-49D6-9D18-F82D88EB0953}"
+	ProjectSection(SolutionItems) = preProject
+		..\SharedFiles\appsettings.Development.json = ..\SharedFiles\appsettings.Development.json
+		..\SharedFiles\appsettings.json = ..\SharedFiles\appsettings.json
+		..\SharedFiles\appsettings.UnitTest.json = ..\SharedFiles\appsettings.UnitTest.json
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Genie.IngressConsumer", "..\Genie.IngressConsumer\Genie.IngressConsumer.csproj", "{E896B40E-5F53-44E1-B519-4C69CA4306B6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Protos", "Protos", "{729FA1B2-130A-400B-ACA9-5282680C1989}"
+	ProjectSection(SolutionItems) = preProject
+		..\SharedFiles\Protos\changefeed.proto = ..\SharedFiles\Protos\changefeed.proto
+		..\SharedFiles\Protos\event.proto = ..\SharedFiles\Protos\event.proto
+		..\SharedFiles\Protos\genius.proto = ..\SharedFiles\Protos\genius.proto
+		..\SharedFiles\Protos\shared.proto = ..\SharedFiles\Protos\shared.proto
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DD95B1B9-92E7-4F44-AAD4-B836CD4EB46A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD95B1B9-92E7-4F44-AAD4-B836CD4EB46A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD95B1B9-92E7-4F44-AAD4-B836CD4EB46A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD95B1B9-92E7-4F44-AAD4-B836CD4EB46A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{155F705B-979C-403E-9125-EC592505D7B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{155F705B-979C-403E-9125-EC592505D7B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{155F705B-979C-403E-9125-EC592505D7B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{155F705B-979C-403E-9125-EC592505D7B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E896B40E-5F53-44E1-B519-4C69CA4306B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E896B40E-5F53-44E1-B519-4C69CA4306B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E896B40E-5F53-44E1-B519-4C69CA4306B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E896B40E-5F53-44E1-B519-4C69CA4306B6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{729FA1B2-130A-400B-ACA9-5282680C1989} = {6BE6890F-D8A6-49D6-9D18-F82D88EB0953}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E145E9C1-1C32-4C32-B9E5-527B3264C841}
+	EndGlobalSection
+EndGlobal

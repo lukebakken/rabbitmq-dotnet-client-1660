@@ -1,0 +1,1 @@
+crank --config benchmark.yaml --scenario hello --profile local

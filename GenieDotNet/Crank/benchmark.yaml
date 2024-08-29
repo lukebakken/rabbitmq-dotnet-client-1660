@@ -1,0 +1,180 @@
+imports:
+    - https://raw.githubusercontent.com/dotnet/crank/main/src/Microsoft.Crank.Jobs.Bombardier/bombardier.yml
+    - https://github.com/aspnet/Benchmarks/blob/main/scenarios/aspnet.profiles.yml?raw=true
+jobs:
+  server:
+#    sources:
+#      techempower:
+#        repository: https://github.com/gradx/GenieDotNet.git
+#        branchOrCommit: main
+#    dockerFile: techempower\docker\server\Dockerfile
+#    dockerImageName: server
+#    dockerContextDirectory: techempower\docker\server
+#    port: 80
+
+    sources:
+      hello-sample:
+        localFolder: ../
+    project: hello-sample/Genie.Web.Api/Genie.Web.Api.csproj
+#    source:
+#      techempower:
+#          repository: https://github.com/gradx/GenieDotNet.git
+#          branchOrCommit: main
+#      dockerFile: techempower\docker\server\Dockerfile
+#      dockerImageName: server
+#      dockerContextDirectory: techempower\docker\server
+#    readyStateText: Now listening on
+    noClean: true
+    port: 80
+# Move to docker for networking issues
+  consumer:
+    sources:
+      consumer:
+        localFolder: ../
+    project: consumer/Genie.ActorConsumer/Genie.ActorConsumer.csproj
+    noClean: true
+  pulsar:
+    source:
+      repository: https://github.com/gradx/GenieDotNet.git
+      branchOrCommit: main
+      dockerFile: docker\pulsar\Dockerfile
+      dockerImageName: pulsar
+      dockerContextDirectory: docker\pulsar
+    readyStateText: Schedule summary
+    noClean: true
+    port: 6650
+  kafka:
+    source:
+      repository: https://github.com/gradx/GenieDotNet.git
+      branchOrCommit: main
+      dockerFile: docker\kafka\Dockerfile
+      dockerImageName: kafka
+      dockerContextDirectory: docker\kafka
+    readyStateText: Welcome to the Bitnami
+    noClean: true
+    port: 29092
+  registry:
+    source:
+      repository: https://github.com/gradx/GenieDotNet.git
+      branchOrCommit: main
+      dockerFile: docker\registry\Dockerfile
+      dockerImageName: registry
+      dockerContextDirectory: docker\registry
+    readyStateText: Server started, listening for requests
+    noClean: true
+    port: 8081
+scenarios:
+  hello:
+#    db:
+#      job: kafka
+#    main:
+#      job: registry
+#    other:
+#      job: consumer
+    application:
+      job: server
+    load:
+      job: bombardier
+      variables:
+        serverPort: 80
+        path: /rabbit
+        timeout: 30
+        duration: 28800
+        #requests: 1
+        connections: 32
+
+        # 289 41
+        # 1405, 41
+
+        ###################
+        # Connection Tuning
+        ###################
+        # test
+        # Con, Dur, To - Req
+        # 10, 15, 30 - 77,390 | Mean latency (ms)       | 0.13               |
+        #
+        # ZLogger
+        # Con, Dur, To - Req
+        # 1, 15, 30 - 1,068 | Mean latency (ms)       | 0.93               |
+        # 4, 15, 30 - 1,078 | Mean latency (ms)       | 3.68               |
+        #
+        # ActiveMQ
+        # Con, Dur, To - Req
+        # No Workload
+        # 3, 15, 30 - 320 | Mean latency (ms)       | 17.23              |
+        # 3, 1800, 30 - 196 - temporary queue
+        # 3, 1800, 30 - 
+
+        # RabbitMQ
+        # Con, Dur, To - Req
+        # Fire & Forget 10/0
+        # 1, 15, 30 - 6,552 | Mean latency (ms)       | 0.15               |
+        # 5, 15, 30 - 24,474 | Mean latency (ms)       | 0.20               |
+        # 6, 15, 30 -  25,797 | Mean latency (ms)       | 0.23               |
+        # 6, 900, 30 -  29,683 e33 | Mean latency (ms)       | 0.20               |
+        # 10, 15, 30 - 19,768 | Mean latency (ms)       | 0.50               |
+        #
+        # Full Workload
+        # 10, 15, 30 - 490 | Mean latency (ms)       | 19.36              |
+        # 12, 15, 30 - 
+        # 16, 15, 30 - 582 | Mean latency (ms)       | 27.60              |
+        # 20, 15, 30 - 483 | Mean latency (ms)       | 42.60              |
+        # 16, 900, 30 - 
+        # 10, 7200, 30 - 
+        # 10, 28800, 30 -
+
+        # Proto.Actor
+        # Con, Dur, To - Req (broker only)
+        # 5, 15, 30 - 12,706 | Mean latency (ms)       | 0.48               |
+        # 8, 15, 30 - 17,077 | Mean latency (ms)       | 0.83               |
+        # 8, 15, 30 - lp8 14,161 | Mean latency (ms)       | 0.56               |
+        # 9, 15, 30 - lp8 14,483 | Mean latency (ms)       | 0.62               |
+        # 10, 15, 30 - lp8 14,686 | Mean latency (ms)       | 0.68               |
+        # 10, 15, 30 - 14,413 | Mean latency (ms)       | 0.69               |
+        #
+        # Full Workload
+        # 6, 15, 30 - 594 | Mean latency (ms)      | 10.18              |
+        # 8, 15, 30 - 640 | Mean latency (ms)       | 12.60              |
+        # 10, 15, 30 - 574 | Mean latency (ms)       | 17.52              |
+        # 15, 15, 30 - 580 | Mean latency (ms)       | 26.38              |
+        # 6, 900, 30 - 393 | Mean latency (ms)       | 15.52              |
+        # 8, 900, 30 - 
+        
+        # Pulsar (16t)
+        # Con, Dur, To - Req (no broker, f&f)
+        # 10, 15, 30 - 654 | Mean latency (ms)       | 15.79              |
+        # 15, 15, 30 - 995 | Mean latency (ms)       | 16.03              |
+        # 30, 15, 30 - 1,948 | Mean latency (ms)       | 15.92              |
+        # 128, 15, 30 -  7,814 | Mean latency (ms)       | 16.49              |
+        # 192, 15, 30 -   5,615  | Mean latency (ms)       | 35.16              |
+        # 256, 15, 30 - 4,719 | Mean latency (ms)       | 56.37              |
+        #
+        # (Full Workload)
+        # 10, 15, 30 - 237  | Mean latency (ms)       | 79.21              |
+        # 10, 900, 30 - 241 | Mean latency (ms)       | 42.97              |
+
+        # Kafka
+        # Con, Dur, To, - Req (no broker, f&f)
+        # 64, 15, 30 - 3,939 | Mean latency (ms)       | 17.06              |
+        # 75, 15, 30 - 4,199 | Mean latency (ms)       | 18.71              |
+        #
+        # (Full Workload)
+        # 55, 15, 30 - 538 | Mean latency (ms)       | 112.60             |
+        # 55, 900, 30 - 336 | Mean latency (ms)       | 175.75             |
+        # 55, 
+
+profiles:
+  local:
+    jobs:
+#      main:
+#        job: registry
+#      other:
+#        job: consumer
+#        endpoints: 
+#          - "http://localhost:5010"
+      application:
+        endpoints: 
+          - "http://localhost:5010"
+      load:
+        endpoints: 
+          - "http://localhost:5010"

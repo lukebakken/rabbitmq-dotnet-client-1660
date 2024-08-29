@@ -1,0 +1,78 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="C:\Users\gradx\.nuget\packages\aeron.driver\1.40.0\contentFiles\any\any\driver\aeron-stat.bat" />
+    <None Remove="C:\Users\gradx\.nuget\packages\aeron.driver\1.40.0\contentFiles\any\any\driver\errors.bat" />
+    <None Remove="C:\Users\gradx\.nuget\packages\aeron.driver\1.40.0\contentFiles\any\any\driver\media-driver.jar" />
+    <None Remove="C:\Users\gradx\.nuget\packages\aeron.driver\1.40.0\contentFiles\any\any\driver\start-clustered-media-driver.bat" />
+    <None Remove="C:\Users\gradx\.nuget\packages\aeron.driver\1.40.0\contentFiles\any\any\driver\start-media-driver.bat" />
+    <None Remove="C:\Users\gradx\.nuget\packages\aeron.driver\1.40.0\contentFiles\any\any\readme.txt" />
+  </ItemGroup>
+
+
+
+
+
+  <ItemGroup>
+    <PackageReference Include="Aeron.Client" Version="1.40.0" />
+    <PackageReference Include="Aeron.Cluster" Version="1.40.0" />
+    <PackageReference Include="Aeron.Driver" Version="1.40.0" />
+    <PackageReference Include="Apache.NMS.ActiveMQ" Version="2.1.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.21.2" />
+    <PackageReference Include="Azure.Storage.Common" Version="12.20.1" />
+    <PackageReference Include="bertt.geoparquet" Version="1.0.1" />
+    <PackageReference Include="Chr.Avro" Version="10.4.0" />
+    <PackageReference Include="Chr.Avro.Binary" Version="10.4.0" />
+    <PackageReference Include="Chr.Avro.Confluent" Version="10.4.0" />
+    <PackageReference Include="Chr.Avro.Json" Version="10.4.0" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.3.0" />
+    <PackageReference Include="Confluent.SchemaRegistry.Serdes.Protobuf" Version="2.5.2" />
+    <PackageReference Include="DeepEqual" Version="5.1.0" />
+    <PackageReference Include="DuckDB.NET.Data.Full" Version="1.0.2" />
+    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.15.0" />
+    <PackageReference Include="Geodesy" Version="4.1.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.65.0" />
+    <PackageReference Include="Mapster" Version="7.4.0" />
+    <PackageReference Include="MaxMind.Db" Version="4.1.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.42.0" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
+    <PackageReference Include="MQTTnet" Version="4.3.6.1152" />
+    <PackageReference Include="MQTTnet.Extensions.TopicTemplate" Version="4.3.6.1152" />
+    <PackageReference Include="NATS.Net" Version="2.3.3" />
+    <PackageReference Include="NetMQ" Version="4.0.1.13" />
+    <PackageReference Include="NetTopologySuite" Version="2.5.0" />
+    <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="4.0.0" />
+    <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="4.0.0" />
+    <PackageReference Include="Npgsql" Version="8.0.3" />
+    <PackageReference Include="Npgsql.NetTopologySuite" Version="8.0.3" />
+    <PackageReference Include="Pulsar.Client" Version="3.6.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.0.0-rc.8" />
+    <PackageReference Include="SpanJson" Version="4.2.0" />
+    <PackageReference Include="System.Data.HashFunction.CityHash" Version="2.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+    <PackageReference Include="ZLogger" Version="2.5.5" />
+    <PackageReference Include="ZstdSharp.Port" Version="0.8.1" />
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <Protobuf Include="..\SharedFiles\Protos\shared.proto">
+      <Link>Protos\shared.proto</Link>
+    </Protobuf>
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <Folder Include="Utils\Cosmos\" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,27 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "launchUrl": "https://a.luxur.ai:5003",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "UnitTest",
+        "ASPNETCORE_URLS": "https://a.luxur.ai:5003"
+      },
+      "distributionName": ""
+    },
+    "UnitTest": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "UnitTest"
+      },
+      "applicationUrl": "https://a.luxur.ai:5003"
+    },
+    "Development": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:80"
+    }
+  }
+}

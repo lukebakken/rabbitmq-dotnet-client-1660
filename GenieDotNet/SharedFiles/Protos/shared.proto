@@ -1,0 +1,331 @@
+syntax = "proto3";
+
+option csharp_namespace = "Genie.Grpc";
+
+import "google/protobuf/timestamp.proto";
+
+package Genie;
+
+
+message BaseRequest {
+	CosmosBase cosmos_base = 1;
+	string device_id = 2;
+	Coordinate origin = 3;
+	int32 horizontal_accuracy = 4;
+	int32 vertical_accuracy = 5;
+	string info = 6;
+	string type = 7;
+	string ip_address_source = 8;
+	string ip_address_destination = 9;
+	google.protobuf.Timestamp request_ttl = 10;
+	int64 length = 11;
+	int32 grace_period = 12;
+}
+
+message BaseResponse {
+	bool success = 1;
+	string info = 2;
+	repeated string errors = 3;
+	google.protobuf.Timestamp time = 6;
+}
+
+message PartyRequest {
+	BaseRequest request = 1;
+	Party party = 2;
+	SignedParty signed_party = 3;
+}
+
+message PartyBenchmarkRequest {
+	BaseRequest request = 1;
+	Party party = 2;
+	SignedParty signed_party = 3;
+}
+
+
+message PartyResponse {
+	BaseResponse response = 1;
+	Party party = 2;
+}
+
+message SignedParty {
+	string party_id = 1;
+	string signature = 2;
+	string geo_crypto_key_id = 3;
+}
+
+message GenieResponse {
+	oneof Response {
+		PartyResponse party = 1;
+	}
+}
+
+message CosmosBaseResponse {
+	BaseResponse response = 1;
+	CosmosBase cosmos_base = 2;
+}
+
+message Zone {
+	Coordinate coordinate = 1;
+	int32 radius = 2;
+	string Name = 3;
+}
+
+message CommunicationIdentity {
+	string id = 1;
+	enum CommunicationType {
+		EMAIL = 0;
+		PHONE = 1;
+		ADDRESS = 2;
+		PROVIDER = 3;
+		GEOSPATIAL = 4;
+	}
+	CommunicationType relationship = 2;
+	string qualifier_value = 3;
+	GeographicLocation geographic_location = 4;
+}
+
+message Schedule {
+	bool sunday = 1;
+	bool monday = 2;
+	bool tuesday = 3;
+	bool wednesday = 4;
+	bool thursday = 5;
+	bool friday = 6;
+	bool saturday = 7;
+	google.protobuf.Timestamp begin_time = 8;
+	google.protobuf.Timestamp end_time = 9;
+};
+
+message GeoJsonCircle {
+	Coordinate centroid = 1;
+	int32 radius = 2;
+}
+
+message GeoJsonLocation {
+	CosmosBase cosmos_base = 1;
+	string geo_json = 2;
+	repeated Schedule schedules = 3;
+	repeated Assessment	assessments = 4;
+	oneof Shape {
+		GeoJsonCircle circle = 5;
+	}
+	repeated KeyValuePair attributes = 6;
+}
+
+message Assessment {
+	google.protobuf.Timestamp begin_date = 1;
+	string description = 2;
+	google.protobuf.Timestamp end_date = 3;
+	string reason = 4; 
+	repeated AssessmentPartyRole party_roles = 5;
+	repeated AssessmentResult results = 6;
+}
+
+message AssessmentPartyRole {
+	string party_id = 1;
+	enum Role {
+		ROLE_WHATEVER = 0;
+	}
+	Role party_role = 2;
+	google.protobuf.Timestamp begin_date = 3;
+	google.protobuf.Timestamp end_date = 4;
+}
+
+message AssessmentResult {
+	string type_code = 1;
+}
+
+message GeographicLocation {
+	string geographic_location_type_code = 1;
+	string location_code = 2;
+	string location_name = 3;
+	string location_number = 4;
+	string state_code = 5;
+	LocationAddress location_address = 6;
+	GeoJsonLocation geo_json_location = 7;
+}
+
+message LocationAddress {
+	string line_1_address = 1;
+	string line_2_address = 2;
+	string municipality_name = 3;
+	string postal_code = 4;
+	string country_code = 5;
+	string state_code = 6;
+}
+
+message Event {
+	CosmosBase cosmos_base = 1;
+	string code = 2;
+	string device_id = 3;
+	string ip_address_source = 4;
+	string ip_address_destination = 5;
+	Coordinate origin = 6;
+	string info = 7;
+	google.protobuf.Timestamp event_date = 8;
+}
+
+message Coordinate {
+	double latitude = 1;
+	double longitude = 2;
+	double altitude = 3;
+}
+
+enum KeyType {
+	X_25519 = 0; // Agreement Oid: 1.3.101.110 id-X25519 
+	ED_25519 = 1; // Signing Oid: 1.3.101.112 id-EdDSA25519
+	RSA = 2; // All
+	SECP_256K1 = 3; // Signing Oid: 1.3.132.0.10 ansip256k1 (bitcoin)
+	SECP_521R1_SIGNING = 4; // Oid:  1.3.132.0.35 ansip521r1
+	SECP_521R1_AGREEMENT = 5; // Oid: 1.2.840.10045.4.3.4
+}
+
+enum KeyUsage {
+	Signing = 0;
+	Agreement = 1;
+}
+
+message GeoCryptoKey {
+	string id = 1;
+	string key = 2;
+	KeyType key_type = 3;
+	KeyUsage key_usage = 4;
+	bool is_private = 5;
+}
+
+message SealedEnvelope {
+	GeoCryptoKey key = 1; // new session/threads
+	enum SealedEnvelopeType {
+		None = 0;
+		AES = 1;
+		ChaChaPoly = 2; // v2
+	}
+	SealedEnvelopeType cipher = 2;
+	// inputs
+	string hkdf = 3; // CM uses random 16 byte strings, DM uses numeric counter
+	string nonce = 4;
+	// outputs
+	string data = 5;
+	string tag = 6;
+}
+
+
+
+message Certificate {
+	repeated SealedEnvelope keys = 1;
+	string subscription_id = 2; // ChannelSubscription.id
+	bool exportable = 3;
+}
+
+
+message Artifact {
+	string name = 1;
+	string code = 2;
+	string contentType = 3;
+	string filename = 4;
+	string container = 5;
+	string public_uri = 6;
+	string server_uri = 7;
+	int64 length = 8;
+	string hash = 9;
+	SealedEnvelope sealed_envelope = 10;
+	enum Category {
+		Empty = 0;
+		Profile = 1; // Party or Channel
+		Header = 2;
+		Resource = 3;
+		Message = 4;
+		DirectMessage = 5;
+		Kiosk = 6;
+	}
+	Category category = 11;
+	repeated KeyValuePair properties = 12;
+}
+
+enum IdentityProvider {
+	GOOGLE = 0;
+	FACEBOOK = 1;
+	MICROSOFT = 2;
+	LINKEDIN = 3;
+	TWITTER = 4;
+	INSTAGRAM = 5;
+	SNAPCHAT = 6;
+	APPLE = 7;
+}
+
+message Party {
+	CosmosBase cosmos_base = 1;
+	string name = 2;
+	enum PartyType {
+		PARTY = 0;
+		CHANNEL = 1;
+		IDENTITY_PROVIDER = 2;
+	}
+	PartyType type = 3;
+	Certificate certificate = 4;
+	repeated Assessment assessments = 5;
+	repeated PartyCommunication communications = 6;
+	repeated PartyRelationship relationships = 7;
+	repeated Event events = 8;
+	repeated Artifact artifacts = 9;
+}
+
+message PartyCommunication {
+	google.protobuf.Timestamp begin_date = 1;
+	string locality_code = 2;
+	CommunicationIdentity communication_identity = 3;
+	google.protobuf.Timestamp end_date = 4;
+}
+
+message PartyRelationship {
+	string related_party_id = 1;
+	enum RelationshipType {
+		CHANNEL = 0;
+		PARTY = 1;
+	}
+	RelationshipType relationship = 2;
+	google.protobuf.Timestamp begin_date = 3;
+	google.protobuf.Timestamp end_date = 4;
+	repeated PartyRelationshipRole party_relationship_roles = 5;
+}
+
+message PartyRelationshipRole {
+	enum RelationshipRole {
+		OWNER = 0;
+		MEMBER = 1;
+		FOLLOWER = 2;
+		ADMINISTRATOR = 3;
+		MODERATOR = 4;
+		VISITOR = 5;
+	}
+	RelationshipRole type = 2;
+	google.protobuf.Timestamp begin_date = 3;
+	google.protobuf.Timestamp end_date = 4;
+}
+
+message KeyValuePair {
+	string key = 1;
+	string value = 2;
+}
+
+message CosmosIdentifier {
+	string id = 1;
+	string partition_key = 2;
+}
+
+message CosmosBase {
+	CosmosIdentifier identifier = 1;
+	string rid = 2;
+	string self = 3;
+	string etag = 4;
+	string attachments = 5;
+	int32 ts = 6;
+	int32 ttl = 7; // 0 is null
+	google.protobuf.Timestamp created = 8;
+	CosmosAudit audit = 9;
+}
+
+message CosmosAudit {
+	string version = 1;
+	string signature = 2;
+}
