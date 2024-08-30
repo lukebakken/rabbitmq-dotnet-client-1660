@@ -75,13 +75,14 @@ public class RabbitMQServiceSingleThreaded
 
             var timerService = new CounterConsoleLogger();
 
-            bool useAvro = false;
             AutoResetEvent WaitHandle = new(false);
 
-            BasicDeliverEventArgs? message = null;
+            byte[]? messageBody = null;
+            string? replyTo = null;
             consumer.Received += (sender, ea) =>
             {
-                message = ea;
+                replyTo = ea.BasicProperties.ReplyTo;
+                messageBody = ea.Body.ToArray();
                 WaitHandle.Set();
                 return Task.CompletedTask;
             };
@@ -98,9 +99,9 @@ public class RabbitMQServiceSingleThreaded
                     }
 
                     timerService.Process();
-                    Grpc.PartyBenchmarkRequest proto = Any.Parser.ParseFrom(message.Body.ToArray()).Unpack<Grpc.PartyBenchmarkRequest>();
+                    Grpc.PartyBenchmarkRequest proto = Any.Parser.ParseFrom(messageBody).Unpack<Grpc.PartyBenchmarkRequest>();
 
-                    if (!string.IsNullOrEmpty(message.BasicProperties.ReplyTo))
+                    if (!string.IsNullOrEmpty(replyTo))
                     {
                         using var ms = manager.GetStream();
                         serializer(new EventTaskJob
@@ -110,7 +111,7 @@ public class RabbitMQServiceSingleThreaded
                             Status = EventTaskJobStatus.Completed
                         }, new Chr.Avro.Serialization.BinaryWriter(ms));
 
-                        await EventChannel.BasicPublishAsync(message.BasicProperties.ReplyTo, context.RabbitMQ.RoutingKey, ms.GetReadOnlySequence().ToArray());
+                        await EventChannel.BasicPublishAsync(replyTo, context.RabbitMQ.RoutingKey, ms.GetReadOnlySequence().ToArray());
                     }
                 }
             }
@@ -120,7 +121,7 @@ public class RabbitMQServiceSingleThreaded
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Error:" + ex.ToString());
 
-                if (!string.IsNullOrEmpty(message.BasicProperties.ReplyTo))
+                if (!string.IsNullOrEmpty(replyTo))
                 {
                     using var ms = manager.GetStream();
                     serializer(new EventTaskJob
@@ -129,7 +130,7 @@ public class RabbitMQServiceSingleThreaded
                         Status = EventTaskJobStatus.Errored
                     }, new Chr.Avro.Serialization.BinaryWriter(ms));
 
-                    await EventChannel.BasicPublishAsync(message.BasicProperties.ReplyTo, context.RabbitMQ.RoutingKey, ms.GetReadOnlySequence().ToArray());
+                    await EventChannel.BasicPublishAsync(replyTo, context.RabbitMQ.RoutingKey, ms.GetReadOnlySequence().ToArray());
                 }
             }
         }
